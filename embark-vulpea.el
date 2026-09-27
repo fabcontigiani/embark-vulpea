@@ -5,7 +5,7 @@
 ;; Author: Fabrizio Contigiani <fabcontigiani@gmail.com>
 ;; Maintainer: Fabrizio Contigiani <fabcontigiani@gmail.com>
 ;; URL: https://github.com/fabcontigiani/embark-vulpea
-;; Version: 0.1.0
+;; Version: 0.1.1
 ;; Package-Requires: ((emacs "27.2") (vulpea "2.0.0") (embark "0.23"))
 ;; Keywords: convenience, notes, vulpea
 
