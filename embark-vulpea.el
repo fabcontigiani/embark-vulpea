@@ -162,10 +162,33 @@ target, making the note ID available to all actions."
             (message "Deleted heading: %s" (vulpea-note-title note)))))
     (user-error "Cannot find vulpea note: %s" id)))
 
+(defun embark-vulpea-add-tags (ids)
+  "Ask for one or more tags and add them to notes with id in IDS."
+  (let* ((all-vulpea-tags (vulpea-db-query-tags))
+         (tags-to-add
+          (completing-read-multiple "Tag to add: " all-vulpea-tags nil t)))
+
+    (dolist (id ids)
+      (let* ((note (vulpea-db-get-by-id id)))
+
+        (vulpea-utils-with-note-sync
+            note (apply #'vulpea-tags-add id tags-to-add))))))
+
+(defun embark-vulpea-remove-tags (ids)
+  "Ask for one or more tags and remove them from notes with id in IDS."
+  (let* ((all-vulpea-tags (vulpea-db-query-tags))
+         (tags-to-remove
+          (completing-read-multiple "Tag to remove: " all-vulpea-tags nil t)))
+    (dolist (id ids)
+      (let* ((note (vulpea-db-get-by-id id)))
+        (vulpea-utils-with-note-sync
+            note (apply #'vulpea-tags-remove id tags-to-remove))))))
+
 ;;;; Keymap
 
 (defvar embark-vulpea-note-map
-  (let ((map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap))
+        (tag-operations-map (make-sparse-keymap)))
     (set-keymap-parent map embark-general-map)
     (define-key map (kbd "RET") #'embark-vulpea-visit)
     (define-key map (kbd "o")   #'embark-vulpea-visit-other-window)
@@ -174,6 +197,9 @@ target, making the note ID available to all actions."
     (define-key map (kbd "w")   #'embark-vulpea-copy-id)
     (define-key map (kbd "W")   #'embark-vulpea-copy-link)
     (define-key map (kbd "D")   #'embark-vulpea-delete)
+    (define-key map (kbd "t") tag-operations-map)
+    (define-key tag-operations-map (kbd "a") #'embark-vulpea-add-tags)
+    (define-key tag-operations-map (kbd "r") #'embark-vulpea-remove-tags)
     map)
   "Keymap for Embark actions on vulpea notes.")
 
@@ -220,6 +246,11 @@ properties."
     (pop-to-buffer buf)))
 
 ;;;; Registration
+
+;; Register embark-vulpea-add-tags and embark-vulpea-remove-tags
+;; to embark-multitarget-actions, since they operate on multiple note IDs.
+(add-to-list 'embark-multitarget-actions 'embark-vulpea-add-tags)
+(add-to-list 'embark-multitarget-actions 'embark-vulpea-remove-tags)
 
 ;; Register transformer to convert candidate string → note ID
 (setf (alist-get 'vulpea-note embark-transformer-alist)
